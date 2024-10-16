@@ -52,7 +52,7 @@ const Main = () => {
                 // Generate bot response based on the updated conversation
                 const result = await model.generateContent([
                     ...currentConversation,
-                    `You’re a helpful AI named PaddyAI. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Don't ask irrelevant questions. Reply to this: ${msg}`
+                    `Reply Guide Rule: You’re a helpful AI named PaddyAI. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Don't ask irrelevant questions. Reply to this message sent ‘ ${msg}’`
                 ]);
 
                 let response = await result.response;
@@ -72,7 +72,7 @@ const Main = () => {
     return (
         <main>
             <section className="mt-[5rem] min-h-[89vh] md:min-h-screen p-5 pb-[0px] flex flex-col justify-between">
-                <div className="flex flex-grow flex-col items-end text-sm mb-[5.21rem]">
+                <div className="flex flex-grow flex-col items-end text-[0.74rem] mb-[5.21rem]">
                     {currentConversation.map((message, index) => (
                         <div
                             key={index}
@@ -134,7 +134,7 @@ const Main = () => {
                             <button
                                 className={`ml-4 px-3 py-2 rounded-3xl ${
                                     isButtonDisabled
-                                        ? "bg-gray-600 text-gray-800 cursor-not-allowed"
+                                        ? "bg-gray-600 text-[#131313] cursor-not-allowed"
                                         : "bg-white text-black"
                                 }`}
                                 onClick={() => handleSendMessage()}
