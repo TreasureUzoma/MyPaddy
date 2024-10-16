@@ -3,7 +3,6 @@ import { adjustHeight } from "../utility/inputControl.js";
 import messages from "../utility/messages.json"; // Import the JSON file directly
 import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
-// Initialize the Gemini API with your API key
 const API_KEY = import.meta.env.VITE_API_KEY;
 const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -12,69 +11,63 @@ const Main = () => {
     const [randomPrompts, setRandomPrompts] = useState([]);
     const [currentConversation, setCurrentConversation] = useState([]);
     const [inputValue, setInputValue] = useState("");
-    const [showPrompts, setShowPrompts] = useState(true); // Control visibility of prompts and PaddyAI text
+    const [showPrompts, setShowPrompts] = useState(true);
 
     useEffect(() => {
-        // Shuffle and select 3 random prompts from imported messages
         const shuffled = messages.sort(() => 0.5 - Math.random());
         const selectedPrompts = shuffled.slice(0, 3);
         setRandomPrompts(selectedPrompts);
     }, []);
 
-    const handleInput = (event) => {
+    const handleInput = event => {
         const textarea = event.target;
-        setInputValue(textarea.value); // Update state with textarea value
+        setInputValue(textarea.value);
         adjustHeight(textarea);
         validateTextarea(textarea);
     };
 
-    const validateTextarea = (textarea) => {
+    const validateTextarea = textarea => {
         const button = document.getElementById("sendButton");
         const hasContent = /\S/.test(textarea.value);
-
-        if (hasContent) {
-            button.disabled = false;
-            button.classList.remove(
-                "bg-gray-600",
-                "text-gray-500",
-                "cursor-not-allowed"
-            );
-            button.classList.add("bg-white", "text-black", "cursor-pointer");
-        } else {
-            button.disabled = true;
-            button.classList.remove("bg-white", "text-black", "cursor-pointer");
-            button.classList.add(
-                "bg-gray-500",
-                "text-gray-600",
-                "cursor-not-allowed"
-            );
-        }
+        button.disabled = !hasContent;
+        button.classList.toggle("cursor-not-allowed", !hasContent);
+        button.classList.toggle("bg-gray-600", !hasContent);
+        button.classList.toggle("text-gray-800", !hasContent);
+        button.classList.toggle("bg-white", hasContent);
+        button.classList.toggle("text-black", hasContent);
     };
 
-    const handlePromptClick = (prompt) => {
-        setInputValue(prompt.title + ' ' + prompt.description); // Set the selected prompt into the textarea
+    const handlePromptClick = async prompt => {
+        await handleSendMessage(prompt.title + " " + prompt.description); // Send the selected prompt as a message
     };
 
-    const handleSendMessage = async () => {
-        if (inputValue.trim() !== "") {
-            setCurrentConversation([...currentConversation, inputValue]); // Add user message to conversation
+    const handleSendMessage = async message => {
+        const msg = message || inputValue.trim();
+        if (msg) {
+            setCurrentConversation(prev => {
+                const newMessages = [...prev, msg];
+                return newMessages.slice(-5); // Keep only the last 5 messages
+            });
 
-            // Hide custom prompts and "PaddyAI" text after sending the message
             setShowPrompts(false);
 
-            // Call Gemini API to get a response
             try {
-                const result = await model.generateContent(inputValue);
+                setInputValue("");
+                document.getElementById("messageTextarea").value = "";
+                document.getElementById("sendButton").disabled = true;
+
+                const result = await model.generateContent(
+                    currentConversation.concat(`
+                You’re a helpful AI named PaddyAI. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Don't ask irrelevant messages 
+                now reply this:
+                ${msg}`)
+                );
                 let response = await result.response;
                 let chatResponse = await response.text();
 
-                // Add Gemini's response to the conversation
-                setCurrentConversation((prev) => [...prev, chatResponse]);
-
-                // Clear input after sending
-                setInputValue("");
-                document.getElementById("messageTextarea").value = ""; // Clear the textarea
-                document.getElementById("sendButton").disabled = true; // Disable send button again
+                setCurrentConversation(prev =>
+                    [...prev, chatResponse].slice(-5)
+                ); // Update with response
             } catch (error) {
                 console.error("Error fetching Gemini response:", error);
             }
@@ -83,10 +76,20 @@ const Main = () => {
 
     return (
         <main>
-            <section className="mt-[5rem] min-h-[89vh] md:min-h-screen p-5">
+            <section className="mt-[5rem] min-h-[89vh] md:min-h-screen p-5 flex flex-col justify-between">
+                <div className="mt-5 flex-grow">
+                    {currentConversation.map((message, index) => (
+                        <div
+                            key={index}
+                            className="bg-[#2a2a2a] text-white p-2 rounded-lg mt-2"
+                        >
+                            {message}
+                        </div>
+                    ))}
+                </div>
+
                 <div className="fixed bottom-0 left-0 right-0 mt-5 w-full p-4 z-10">
                     <div className="py-4 my-5">
-                        {/* Only show "PaddyAI" and custom prompts if the message hasn't been sent */}
                         {showPrompts && (
                             <>
                                 <b className="text-center block my-4 text-lg">
@@ -97,7 +100,9 @@ const Main = () => {
                                         <div
                                             key={index}
                                             className="border border-1 border-[#383838] rounded-2xl p-3 w-full cursor-pointer"
-                                            onClick={() => handlePromptClick(prompt)}
+                                            onClick={() =>
+                                                handlePromptClick(prompt)
+                                            }
                                         >
                                             <h3 className="font-semibold text-[0.85rem] text-[#ccc]">
                                                 {prompt.title}
@@ -111,45 +116,34 @@ const Main = () => {
                             </>
                         )}
                     </div>
-                    <div className="flex justify-between items-center rounded-3xl p-2 bg-[#1e1f21] w-full">
-                        <textarea
-                            id="messageTextarea"
-                            className="w-full font-poppins px-4 py-2 bg-transparent text-sm text-white h-9 max-h-50 resize-none overflow-y-auto"
-                            onInput={handleInput}
-                            value={inputValue} // Controlled textarea
-                            placeholder="Message Paddy..."
-                        ></textarea>
-                        <button
-                            id="sendButton"
-                            className="ml-4 px-3 py-2 rounded-3xl bg-gray-500 text-gray-600 cursor-not-allowed"
-                            disabled
-                            onClick={handleSendMessage}
-                        >
-                            <i className="fa-regular fa-paper-plane"></i>
-                        </button>
-                    </div>
-                    <div className="text-center">
-                        <span className="text-xs text-gray-500 mt-2">
-                            Paddy can make mistakes.
-                            <a
-                                href="#"
-                                className="text-blue-500 hover:text-blue-700"
+                    <div className="py-3 bg-myBlack w-full relative">
+                        <div className="flex justify-between items-center rounded-3xl p-2 bg-[#1e1f21] w-full">
+                            <textarea
+                                id="messageTextarea"
+                                className="w-full font-poppins px-4 py-2 bg-transparent text-sm text-white h-9 max-h-50 resize-none overflow-y-auto"
+                                onChange={handleInput}
+                                value={inputValue}
+                                placeholder="Message Paddy..."
+                            ></textarea>
+                            <button
+                                id="sendButton"
+                                className="ml-4 px-3 py-2 rounded-3xl bg-gray-600 text-gray-800 cursor-not-allowed"
+                                onClick={() => handleSendMessage()}
                             >
-                                &nbsp;Learn more.
-                            </a>
-                        </span>
-                    </div>
-
-                    {/* Display conversation */}
-                    <div className="mt-5">
-                        {currentConversation.map((message, index) => (
-                            <div
-                                key={index}
-                                className="bg-[#2a2a2a] text-white p-2 rounded-lg my-2"
-                            >
-                                {message}
-                            </div>
-                        ))}
+                                <i className="fa-regular fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div className="text-center">
+                            <span className="text-xs text-gray-400 mt-2">
+                                Paddy can make mistakes.
+                                <a
+                                    href="#"
+                                    className="text-blue-500 hover:text-blue-700"
+                                >
+                                    &nbsp;Learn more.
+                                </a>
+                            </span>
+                        </div>
                     </div>
                 </div>
             </section>
