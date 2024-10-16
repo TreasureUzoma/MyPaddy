@@ -1,16 +1,15 @@
 const Nav = () => {
-  const handleNewChat = () => {
-    window.open('#', '_blank')
-  }
+    const handleNewChat = () => {
+        window.open("#", "_blank");
+    };
     return (
-        <nav className="flex w-full fixed b-0 left-0 align-center justify-between px-6 py-5 top-0 bg-myBlack">
-            <span class="font-bold text-lg">Paddy</span>
-                        <button
-                class="newchat-btn"
-                id="newchat-btn"
-                onClick={handleNewChat}
-            >
-                <i class="fa fa-plus"></i>
+        <nav className="flex w-full fixed b-0 left-0 align-center justify-between px-6 py-5 top-0 bg-myBlack z-30">
+            <span className="font-bold text-lg">Paddy</span>
+            <button 
+              onClick={handleNewChat}
+              className="border border-2 rounded-xl px-2 py-[2px]"
+              >
+                <i className="fa fa-plus text-sm"></i>
             </button>
         </nav>
     );
