@@ -20,11 +20,19 @@ const Main = () => {
         setRandomPrompts(selectedPrompts);
     }, []);
 
+    // Detect changes in textarea and adjust height
+    useEffect(() => {
+        const textarea = document.querySelector("textarea");
+        if (textarea) {
+            adjustHeight(textarea);
+        }
+
+        setIsButtonDisabled(!/\S/.test(inputValue)); // Disable button if empty
+    }, [inputValue]);
+
     const handleInput = event => {
         const value = event.target.value;
         setInputValue(value);
-        adjustHeight(event.target);
-        setIsButtonDisabled(!/\S/.test(value));
     };
 
     const handlePromptClick = async prompt => {
@@ -34,25 +42,29 @@ const Main = () => {
     const handleSendMessage = async message => {
         const msg = message || inputValue.trim();
         if (msg) {
+            // Push the user message to the conversation
             setCurrentConversation(prev => {
-                const newMessages = [...prev, msg];
-                return newMessages.slice(-6); // Keep only the last 5 messages
+                const newMessages = [...prev, { text: msg, sender: "user" }];
+                return newMessages;
             });
 
             setShowPrompts(false);
             setInputValue("");
 
             try {
-                const result = await model.generateContent(
-                    currentConversation.concat(`
-                You’re a helpful AI named PaddyAI. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Don't ask irrelevant messages. Read the prompt very well before replying
-                now reply this:
-                     ${msg}`)
-                );
+                const result = await model.generateContent([
+                    ...currentConversation,
+                    `You’re a helpful AI named PaddyAI. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Don't ask irrelevant questions. Reply to this: ${msg}`
+                ]);
+
                 let response = await result.response;
                 let chatResponse = await response.text();
 
-                setCurrentConversation(prev => [...prev, chatResponse]); // Update with response
+                // Push the AI response to the conversation
+                setCurrentConversation(prev => [
+                    ...prev,
+                    { text: chatResponse, sender: "ai" }
+                ]);
             } catch (error) {
                 console.error("Error fetching Gemini response:", error);
             }
@@ -61,29 +73,50 @@ const Main = () => {
 
     return (
         <main>
-            <section className="mt-[5rem] min-h-[89vh] md:min-h-screen p-5 flex flex-col justify-between">
-                <div className="mt-5 flex-grow">
+            <section className="mt-[5rem] min-h-[89vh] md:min-h-screen p-5 pb-[0px] flex flex-col justify-between">
+                <div className="flex-grow text-sm mb-[5.21rem]">
                     {currentConversation.map((message, index) => (
-                        <div key={index} className="bg-[#2a2a2a] text-white p-2 rounded-lg mt-2">
-                            {message}
+                        <div
+                            key={index}
+                            className={`mb-[1.2em] font-poppins block ${
+                                message.sender === "user" ? "text-right" : ""
+                            }`}
+                        >
+                            <span
+                                className={`p-3 rounded-2xl inline-flex mb-2 max-w-[250px] flex-wrap ${
+                                    message.sender === "user"
+                                        ? "bg-blue-600 ml-auto"
+                                        : "bg-[#2a2a2a]"
+                                }`}
+                            >
+                                {message.text}
+                            </span>
                         </div>
                     ))}
                 </div>
 
-                <div className="fixed bottom-0 left-0 right-0 mt-5 w-full p-4 z-10">
+                <div className="fixed bottom-0 left-0 right-0 mt-5 w-full p-4 pb-0 z-10">
                     <div className="py-4 my-5">
                         {showPrompts && (
                             <>
-                                <b className="text-center block my-4 text-lg">PaddyAI</b>
+                                <b className="text-center block my-4 text-lg">
+                                    PaddyAI
+                                </b>
                                 <div className="my-4 grid place-items-center grid-cols-1 gap-4 md:grid-cols-2 font-poppins md:gap-6">
                                     {randomPrompts.map((prompt, index) => (
                                         <div
                                             key={index}
                                             className="border border-1 border-[#383838] rounded-2xl p-3 w-full cursor-pointer"
-                                            onClick={() => handlePromptClick(prompt)}
+                                            onClick={() =>
+                                                handlePromptClick(prompt)
+                                            }
                                         >
-                                            <h3 className="font-semibold text-[0.85rem] text-[#ccc]">{prompt.title}</h3>
-                                            <p className="text-[0.75rem] text-[#bbb]">{prompt.description}</p>
+                                            <h3 className="font-semibold text-[0.85rem] text-[#ccc]">
+                                                {prompt.title}
+                                            </h3>
+                                            <p className="text-[0.75rem] text-[#bbb]">
+                                                {prompt.description}
+                                            </p>
                                         </div>
                                     ))}
                                 </div>
@@ -99,7 +132,11 @@ const Main = () => {
                                 placeholder="Message Paddy..."
                             ></textarea>
                             <button
-                                className={`ml-4 px-3 py-2 rounded-3xl ${isButtonDisabled ? 'bg-gray-600 text-gray-800 cursor-not-allowed' : 'bg-white text-black'}`}
+                                className={`ml-4 px-3 py-2 rounded-3xl ${
+                                    isButtonDisabled
+                                        ? "bg-gray-600 text-gray-800 cursor-not-allowed"
+                                        : "bg-white text-black"
+                                }`}
                                 onClick={() => handleSendMessage()}
                                 disabled={isButtonDisabled}
                             >
@@ -109,7 +146,12 @@ const Main = () => {
                         <div className="text-center">
                             <span className="text-xs text-gray-400 mt-2">
                                 Paddy can make mistakes.
-                                <a href="#" className="text-blue-500 hover:text-blue-700">&nbsp;Learn more.</a>
+                                <a
+                                    href="#"
+                                    className="text-blue-500 hover:text-blue-700"
+                                >
+                                    &nbsp;Learn more.
+                                </a>
                             </span>
                         </div>
                     </div>
