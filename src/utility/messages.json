@@ -1,0 +1,18 @@
+[
+    { "title": "Generate a meal plan", "description": "for a week with variety." },
+    { "title": "Suggest three books to", "description": "read this month for growth." },
+    { "title": "Create a workout routine", "description": "for beginners focusing on strength." },
+    { "title": "List five ways to", "description": "improve my sleep quality naturally." },
+    { "title": "Give me tips for", "description": "effective time management at work." },
+    { "title": "Suggest strategies to reduce", "description": "stress and enhance well-being." },
+    { "title": "Help me brainstorm ideas", "description": "for a compelling blog post." },
+    { "title": "Create a list of", "description": "goals for personal development this year." },
+    { "title": "Recommend a self-care", "description": "routine to improve my mood." },
+    { "title": "Outline steps to learn", "description": "a new language efficiently." },
+    { "title": "Suggest fun activities for", "description": "a weekend with friends outdoors." },
+    { "title": "Provide a guide for", "description": "starting a small garden at home." },
+    { "title": "Generate a travel itinerary", "description": "for a weekend trip to Paris." },
+    { "title": "List essential skills for", "description": "career advancement in tech." },
+    { "title": "Create a budget plan", "description": "for a month of saving." },
+    { "title": "Help me develop a", "description": "morning routine for productivity." }
+]
