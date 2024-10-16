@@ -76,14 +76,18 @@ const Main = () => {
                     {currentConversation.map((message, index) => (
                         <div
                             key={index}
-                            className={`mb-[1.2em] font-poppins block w-full`}
+                            className={`mb-[1.2em] font-poppins flex w-full ${
+                                index % 2 === 0
+                                    ? "justify-end"
+                                    : "justify-start"
+                            }`}
                         >
                             <span
-                                className={`p-3 rounded-2xl mb-2 max-w-[250px] flex-wrap break-words text-white whitespace-pre-wrap ${
+                                className={`p-4 rounded-2xl mb-2 max-w-[250px] flex flex-wrap break-words text-white whitespace-pre-wrap ${
                                     index % 2 === 0
-                                        ? "bg-blue-600"
-                                        : "bg-[#2a2a2a] float-left"
-                                }`}
+                                        ? "bg-blue-600" // User message
+                                        : "bg-[#2a2a2a]" // AI response
+                                } md:max-w-[350px] lg:max-w-[460px]`}
                             >
                                 {message.text}
                             </span>
