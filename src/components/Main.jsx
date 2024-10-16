@@ -43,15 +43,13 @@ const Main = () => {
         const msg = message || inputValue.trim();
         if (msg) {
             // Push the user message to the conversation
-            setCurrentConversation(prev => {
-                const newMessages = [...prev, { text: msg, sender: "user" }];
-                return newMessages;
-            });
+            setCurrentConversation(prev => [...prev, { text: msg }]);
 
             setShowPrompts(false);
             setInputValue("");
 
             try {
+                // Generate bot response based on the updated conversation
                 const result = await model.generateContent([
                     ...currentConversation,
                     `You’re a helpful AI named PaddyAI. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Don't ask irrelevant questions. Reply to this: ${msg}`
@@ -60,10 +58,10 @@ const Main = () => {
                 let response = await result.response;
                 let chatResponse = await response.text();
 
-                // Push the AI response to the conversation
+                // Use a callback to ensure the conversation includes the latest message
                 setCurrentConversation(prev => [
                     ...prev,
-                    { text: chatResponse, sender: "ai" }
+                    { text: chatResponse }
                 ]);
             } catch (error) {
                 console.error("Error fetching Gemini response:", error);
@@ -74,19 +72,17 @@ const Main = () => {
     return (
         <main>
             <section className="mt-[5rem] min-h-[89vh] md:min-h-screen p-5 pb-[0px] flex flex-col justify-between">
-                <div className="flex-grow text-sm mb-[5.21rem]">
+                <div className="flex flex-grow flex-col items-end text-sm mb-[5.21rem]">
                     {currentConversation.map((message, index) => (
                         <div
                             key={index}
-                            className={`mb-[1.2em] font-poppins block ${
-                                message.sender === "user" ? "text-right" : ""
-                            }`}
+                            className={`mb-[1.2em] font-poppins block w-full`}
                         >
                             <span
-                                className={`p-3 rounded-2xl inline-flex mb-2 max-w-[250px] flex-wrap ${
-                                    message.sender === "user"
-                                        ? "bg-blue-600 ml-auto"
-                                        : "bg-[#2a2a2a]"
+                                className={`p-3 rounded-2xl mb-2 max-w-[250px] flex-wrap break-words text-white whitespace-pre-wrap ${
+                                    index % 2 === 0
+                                        ? "bg-blue-600"
+                                        : "bg-[#2a2a2a] float-left"
                                 }`}
                             >
                                 {message.text}
