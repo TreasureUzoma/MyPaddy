@@ -12,6 +12,7 @@ const Main = () => {
     const [currentConversation, setCurrentConversation] = useState([]);
     const [inputValue, setInputValue] = useState("");
     const [showPrompts, setShowPrompts] = useState(true);
+    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
     useEffect(() => {
         const shuffled = messages.sort(() => 0.5 - Math.random());
@@ -20,25 +21,14 @@ const Main = () => {
     }, []);
 
     const handleInput = event => {
-        const textarea = event.target;
-        setInputValue(textarea.value);
-        adjustHeight(textarea);
-        validateTextarea(textarea);
-    };
-
-    const validateTextarea = textarea => {
-        const button = document.getElementById("sendButton");
-        const hasContent = /\S/.test(textarea.value);
-        button.disabled = !hasContent;
-        button.classList.toggle("cursor-not-allowed", !hasContent);
-        button.classList.toggle("bg-gray-600", !hasContent);
-        button.classList.toggle("text-gray-800", !hasContent);
-        button.classList.toggle("bg-white", hasContent);
-        button.classList.toggle("text-black", hasContent);
+        const value = event.target.value;
+        setInputValue(value);
+        adjustHeight(event.target);
+        setIsButtonDisabled(!/\S/.test(value));
     };
 
     const handlePromptClick = async prompt => {
-        await handleSendMessage(prompt.title + " " + prompt.description); // Send the selected prompt as a message
+        await handleSendMessage(`${prompt.title} ${prompt.description}`);
     };
 
     const handleSendMessage = async message => {
@@ -50,24 +40,19 @@ const Main = () => {
             });
 
             setShowPrompts(false);
+            setInputValue("");
 
             try {
-                setInputValue("");
-                document.getElementById("messageTextarea").value = "";
-                document.getElementById("sendButton").disabled = true;
-
                 const result = await model.generateContent(
                     currentConversation.concat(`
-                You’re a helpful AI named PaddyAI. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Don't ask irrelevant messages 
+                You’re a helpful AI named PaddyAI. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Don't ask irrelevant messages. Read the prompt very well before replying
                 now reply this:
                      ${msg}`)
                 );
                 let response = await result.response;
                 let chatResponse = await response.text();
 
-                setCurrentConversation(prev =>
-                    [...prev, chatResponse].slice(-6)
-                ); // Update with response
+                setCurrentConversation(prev => [...prev, chatResponse]); // Update with response
             } catch (error) {
                 console.error("Error fetching Gemini response:", error);
             }
@@ -79,10 +64,7 @@ const Main = () => {
             <section className="mt-[5rem] min-h-[89vh] md:min-h-screen p-5 flex flex-col justify-between">
                 <div className="mt-5 flex-grow">
                     {currentConversation.map((message, index) => (
-                        <div
-                            key={index}
-                            className="bg-[#2a2a2a] text-white p-2 rounded-lg mt-2"
-                        >
+                        <div key={index} className="bg-[#2a2a2a] text-white p-2 rounded-lg mt-2">
                             {message}
                         </div>
                     ))}
@@ -92,24 +74,16 @@ const Main = () => {
                     <div className="py-4 my-5">
                         {showPrompts && (
                             <>
-                                <b className="text-center block my-4 text-lg">
-                                    PaddyAI
-                                </b>
+                                <b className="text-center block my-4 text-lg">PaddyAI</b>
                                 <div className="my-4 grid place-items-center grid-cols-1 gap-4 md:grid-cols-2 font-poppins md:gap-6">
                                     {randomPrompts.map((prompt, index) => (
                                         <div
                                             key={index}
                                             className="border border-1 border-[#383838] rounded-2xl p-3 w-full cursor-pointer"
-                                            onClick={() =>
-                                                handlePromptClick(prompt)
-                                            }
+                                            onClick={() => handlePromptClick(prompt)}
                                         >
-                                            <h3 className="font-semibold text-[0.85rem] text-[#ccc]">
-                                                {prompt.title}
-                                            </h3>
-                                            <p className="text-[0.75rem] text-[#bbb]">
-                                                {prompt.description}
-                                            </p>
+                                            <h3 className="font-semibold text-[0.85rem] text-[#ccc]">{prompt.title}</h3>
+                                            <p className="text-[0.75rem] text-[#bbb]">{prompt.description}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -119,16 +93,15 @@ const Main = () => {
                     <div className="py-3 bg-myBlack w-full relative">
                         <div className="flex justify-between items-center rounded-3xl p-2 bg-[#1e1f21] w-full">
                             <textarea
-                                id="messageTextarea"
                                 className="w-full font-poppins px-4 py-2 bg-transparent text-sm text-white h-9 max-h-50 resize-none overflow-y-auto"
                                 onChange={handleInput}
                                 value={inputValue}
                                 placeholder="Message Paddy..."
                             ></textarea>
                             <button
-                                id="sendButton"
-                                className="ml-4 px-3 py-2 rounded-3xl bg-gray-600 text-gray-800 cursor-not-allowed"
+                                className={`ml-4 px-3 py-2 rounded-3xl ${isButtonDisabled ? 'bg-gray-600 text-gray-800 cursor-not-allowed' : 'bg-white text-black'}`}
                                 onClick={() => handleSendMessage()}
+                                disabled={isButtonDisabled}
                             >
                                 <i className="fa-regular fa-paper-plane"></i>
                             </button>
@@ -136,12 +109,7 @@ const Main = () => {
                         <div className="text-center">
                             <span className="text-xs text-gray-400 mt-2">
                                 Paddy can make mistakes.
-                                <a
-                                    href="#"
-                                    className="text-blue-500 hover:text-blue-700"
-                                >
-                                    &nbsp;Learn more.
-                                </a>
+                                <a href="#" className="text-blue-500 hover:text-blue-700">&nbsp;Learn more.</a>
                             </span>
                         </div>
                     </div>
