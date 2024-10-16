@@ -46,7 +46,7 @@ const Main = () => {
         if (msg) {
             setCurrentConversation(prev => {
                 const newMessages = [...prev, msg];
-                return newMessages.slice(-5); // Keep only the last 5 messages
+                return newMessages.slice(-6); // Keep only the last 5 messages
             });
 
             setShowPrompts(false);
@@ -60,13 +60,13 @@ const Main = () => {
                     currentConversation.concat(`
                 You’re a helpful AI named PaddyAI. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Don't ask irrelevant messages 
                 now reply this:
-                ${msg}`)
+                     ${msg}`)
                 );
                 let response = await result.response;
                 let chatResponse = await response.text();
 
                 setCurrentConversation(prev =>
-                    [...prev, chatResponse].slice(-5)
+                    [...prev, chatResponse].slice(-6)
                 ); // Update with response
             } catch (error) {
                 console.error("Error fetching Gemini response:", error);
