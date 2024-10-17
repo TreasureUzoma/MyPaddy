@@ -4,6 +4,7 @@ import messages from "../utility/messages.json"; // Import the JSON file directl
 import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+
 const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -13,6 +14,7 @@ const Main = () => {
     const [inputValue, setInputValue] = useState("");
     const [showPrompts, setShowPrompts] = useState(true);
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+    const [isYourTurn, setIsYourTurn] = useState(true); // Track if it's your turn to send a message
 
     useEffect(() => {
         const shuffled = messages.sort(() => 0.5 - Math.random());
@@ -21,12 +23,12 @@ const Main = () => {
     }, []);
 
     // Detect changes in textarea and adjust height
+
     useEffect(() => {
         const textarea = document.querySelector("textarea");
         if (textarea) {
             adjustHeight(textarea);
         }
-
         setIsButtonDisabled(!/\S/.test(inputValue)); // Disable button if empty
     }, [inputValue]);
 
@@ -41,58 +43,68 @@ const Main = () => {
 
     const handleSendMessage = async message => {
         const msg = message || inputValue.trim();
-        if (msg) {
-            // Push the user message to the conversation
-            setCurrentConversation(prev => [...prev, { text: msg }]);
-
+        if (msg && isYourTurn) {
+            // Add user message to the conversation
+            setCurrentConversation(prev => [
+                ...prev,
+                { text: msg, isYou: true }
+            ]);
             setShowPrompts(false);
             setInputValue("");
+            setIsYourTurn(false);
 
             try {
-                // Generate bot response based on the updated conversation
-                const result = await model.generateContent([
-                    ...currentConversation,
-                    `Reply Guide Rule: You’re a helpful AI named PaddyAI. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Don't ask irrelevant questions. Reply to this message sent ‘ ${msg}’`
-                ]);
+                // Prepare the context by including the last 8 messages
+                const context = currentConversation
+                    .slice(-8)
+                    .map(m => m.text)
+                    .join("\n");
+                const fullMessage = `Reply Guide Rule: You’re a helpful AI named PaddyAI. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Don't ask irrelevant questions. Context:\n${context}\nUser: ${msg}`;
+
+                // Generate bot response based on the prepared context
+                const result = await model.generateContent([fullMessage]);
 
                 let response = await result.response;
                 let chatResponse = await response.text();
 
-                // Use a callback to ensure the conversation includes the latest message
+                // Add the bot's response to the conversation
                 setCurrentConversation(prev => [
                     ...prev,
-                    { text: chatResponse }
+                    { text: chatResponse, isYou: false }
                 ]);
+                setIsYourTurn(true); // Allow the user to send the next message
             } catch (error) {
                 console.error("Error fetching Gemini response:", error);
             }
         }
     };
 
+    const renderMessage = (message, index) => {
+        return (
+            <div
+                key={index}
+                className={`mb-[1.2em] font-poppins flex w-full ${
+                    message.isYou ? "justify-end" : "justify-start"
+                }`}
+            >
+                <span
+                    className={`p-4 rounded-2xl mb-2 max-w-[250px] flex flex-wrap break-words text-white whitespace-pre-wrap ${
+                        message.isYou ? "bg-blue-600" : "bg-[#2a2a2a]"
+                    } md:max-w-[350px] lg:max-w-[460px]`}
+                >
+                    {message.text}
+                </span>
+            </div>
+        );
+    };
+
     return (
         <main>
             <section className="mt-[5rem] min-h-[89vh] md:min-h-screen p-5 pb-[0px] flex flex-col justify-between">
                 <div className="flex flex-grow flex-col items-end text-[0.74rem] mb-[5.21rem]">
-                    {currentConversation.map((message, index) => (
-                        <div
-                            key={index}
-                            className={`mb-[1.2em] font-poppins flex w-full ${
-                                index % 2 === 0
-                                    ? "justify-end"
-                                    : "justify-start"
-                            }`}
-                        >
-                            <span
-                                className={`p-4 rounded-2xl mb-2 max-w-[250px] flex flex-wrap break-words text-white whitespace-pre-wrap ${
-                                    index % 2 === 0
-                                        ? "bg-blue-600" // User message
-                                        : "bg-[#2a2a2a]" // AI response
-                                } md:max-w-[350px] lg:max-w-[460px]`}
-                            >
-                                {message.text}
-                            </span>
-                        </div>
-                    ))}
+                    {currentConversation.map((message, index) =>
+                        renderMessage(message, index)
+                    )}
                 </div>
 
                 <div className="fixed bottom-0 left-0 right-0 mt-5 w-full p-4 pb-0 z-10">
@@ -102,6 +114,7 @@ const Main = () => {
                                 <b className="text-center block my-4 text-lg">
                                     PaddyAI
                                 </b>
+
                                 <div className="my-4 grid place-items-center grid-cols-1 gap-4 md:grid-cols-2 font-poppins md:gap-6">
                                     {randomPrompts.map((prompt, index) => (
                                         <div
@@ -114,6 +127,7 @@ const Main = () => {
                                             <h3 className="font-semibold text-[0.85rem] text-[#ccc]">
                                                 {prompt.title}
                                             </h3>
+
                                             <p className="text-[0.75rem] text-[#bbb]">
                                                 {prompt.description}
                                             </p>
@@ -123,6 +137,7 @@ const Main = () => {
                             </>
                         )}
                     </div>
+
                     <div className="py-3 bg-myBlack w-full relative">
                         <div className="flex justify-between items-center rounded-3xl p-2 bg-[#1e1f21] w-full">
                             <textarea
@@ -130,19 +145,22 @@ const Main = () => {
                                 onChange={handleInput}
                                 value={inputValue}
                                 placeholder="Message Paddy..."
+                                disabled={!isYourTurn} // Disable textarea if it's not your turn
                             ></textarea>
+
                             <button
                                 className={`ml-4 px-3 py-2 rounded-3xl ${
-                                    isButtonDisabled
+                                    isButtonDisabled || !isYourTurn
                                         ? "bg-gray-600 text-[#131313] cursor-not-allowed"
                                         : "bg-white text-black"
                                 }`}
                                 onClick={() => handleSendMessage()}
-                                disabled={isButtonDisabled}
+                                disabled={isButtonDisabled || !isYourTurn} // Disable button if it's not your turn
                             >
                                 <i className="fa-regular fa-paper-plane"></i>
                             </button>
                         </div>
+
                         <div className="text-center">
                             <span className="text-xs text-gray-400 mt-2">
                                 Paddy can make mistakes.
