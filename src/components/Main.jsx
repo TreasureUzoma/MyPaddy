@@ -99,9 +99,9 @@ const Main = () => {
                 }`}
             >
                 <span
-                    className={`p-4 rounded-2xl mb-2 max-w-[250px] flex flex-wrap break-words text-white whitespace-pre-wrap ${
+                    className={`p-4 rounded-2xl mb-2 max-w-[250px] flex flex-wrap break-words overflow-wrap break-word text-white whitespace-normal break-all ${
                         message.isYou ? "bg-blue-600" : "bg-[#2a2a2a]"
-                    } md:max-w-[350px] lg:max-w-[460px]`}
+                    } md:max-w-[350px] lg:max-w-[485px]`}
                     dangerouslySetInnerHTML={{ __html: message.text }} // Use innerHTML to render formatted text
                 />
             </div>
