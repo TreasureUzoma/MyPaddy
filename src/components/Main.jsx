@@ -127,9 +127,9 @@ const Main = () => {
                 }`}
             >
                 <span
-                    className={`p-4 rounded-2xl mb-2 max-w-[250px] flex flex-wrap break-words overflow-wrap break-normal text-white break-all ${
+                    className={`p-4 rounded-2xl mb-2 max-w-[250px] flex flex-wrap break-words overflow-wrap break-normal break-all break-word ${
                         message.isYou ? "bg-blue-600" : "bg-[#2a2a2a]"
-                    } md:max-w-[350px] lg:max-w-[485px]`}
+                    } md:max-w-[350px] lg:max-w-[495px]`}
                     dangerouslySetInnerHTML={{ __html: message.text }}
                 />
             </div>
