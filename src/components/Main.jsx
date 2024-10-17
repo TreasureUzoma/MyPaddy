@@ -53,25 +53,39 @@ const Main = () => {
         // Escape HTML tags first
         text = formatTagsOnly(text);
 
+        // Replace spaces with &nbsp;
+        text = text.replace(/ /g, "&nbsp;");
+
+        // Replace double line breaks (for paragraphs) with <br />
+        text = text.replace(/\n\s*\n/g, "<br />");
+
         // Format for markdown-like syntax
         text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
         text = text.replace(/`([^`]+)`/g, "<code>$1</code><br />");
-        text = text.replace(
-            /```\n?([\s\S]*?)\n?```/g,
-            "<code>$1</code><br />"
-        );
+        text = text.replace(/``\n?([\s\S]*?)\n?``/g, "<code>$1</code><br />");
         text = text.replace(/^\s*\*\s+(.*)$/gm, "<br /><li>$1</li>");
         text = text.replace(/(<li>.*<\/li>)/g, "<ul>$1</ul>");
         text = text.replace(/\n/g, "<br />"); // Add line breaks
         return text;
     };
 
-    const handleSendMessage = async (message) => {
+    const formatUserMessage = text => {
+        // Replace spaces with &nbsp;
+        text = text.replace(/ /g, "&nbsp;");
+        // Replace new lines with <br />
+        text = text.replace(/\n/g, "<br />");
+        return text;
+    };
+
+    const handleSendMessage = async message => {
         const msg = message || inputValue.trim();
         if (msg && isYourTurn) {
+            // Format only the user message
+            const formattedUserMessage = formatUserMessage(msg);
+
             setCurrentConversation(prev => [
                 ...prev,
-                { text: formatTagsOnly(msg), isYou: true }  // Escape user input
+                { text: formattedUserMessage, isYou: true } // User message formatted
             ]);
             setShowPrompts(false);
             setInputValue("");
@@ -89,7 +103,7 @@ const Main = () => {
                 let response = await result.response;
                 let chatResponse = await response.text();
 
-                chatResponse = formatResponse(chatResponse);  // Format bot's response
+                chatResponse = formatResponse(chatResponse); // Format bot's response
 
                 setCurrentConversation(prev => [
                     ...prev,
