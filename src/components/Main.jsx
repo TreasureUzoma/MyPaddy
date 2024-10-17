@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { adjustHeight } from "../utility/inputControl.js";
 import messages from "../utility/messages.json";
 import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
@@ -15,6 +15,8 @@ const Main = () => {
     const [showPrompts, setShowPrompts] = useState(true);
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
     const [isYourTurn, setIsYourTurn] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const chatEndRef = useRef(null);
 
     useEffect(() => {
         const shuffled = messages.sort(() => 0.5 - Math.random());
@@ -30,6 +32,10 @@ const Main = () => {
         setIsButtonDisabled(!/\S/.test(inputValue));
     }, [inputValue]);
 
+    useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [currentConversation]);
+
     const handleInput = event => {
         const value = event.target.value;
         setInputValue(value);
@@ -39,31 +45,38 @@ const Main = () => {
         await handleSendMessage(`${prompt.title} ${prompt.description}`);
     };
 
-    const formatResponse = (text) => {
-        // Bold text (surrounded by **)
-        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    const formatTagsOnly = text => {
+        return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    };
 
-        // Code blocks (surrounded by ``` or single backticks)
-        text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
-        text = text.replace(/```\n?([\s\S]*?)\n?```/g, '<pre><code>$1</code></pre>');
+    const formatResponse = text => {
+        // Escape HTML tags first
+        text = formatTagsOnly(text);
 
-        // List items (starting with a bullet)
-        text = text.replace(/^\s*\*\s+(.*)$/gm, '<li>$1</li>');
-        text = text.replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>');
-
+        // Format for markdown-like syntax
+        text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+        text = text.replace(/`([^`]+)`/g, "<code>$1</code><br />");
+        text = text.replace(
+            /```\n?([\s\S]*?)\n?```/g,
+            "<code>$1</code><br />"
+        );
+        text = text.replace(/^\s*\*\s+(.*)$/gm, "<br /><li>$1</li>");
+        text = text.replace(/(<li>.*<\/li>)/g, "<ul>$1</ul>");
+        text = text.replace(/\n/g, "<br />"); // Add line breaks
         return text;
     };
 
-    const handleSendMessage = async message => {
+    const handleSendMessage = async (message) => {
         const msg = message || inputValue.trim();
         if (msg && isYourTurn) {
             setCurrentConversation(prev => [
                 ...prev,
-                { text: msg, isYou: true }
+                { text: formatTagsOnly(msg), isYou: true }  // Escape user input
             ]);
             setShowPrompts(false);
             setInputValue("");
             setIsYourTurn(false);
+            setLoading(true); // Show loader
 
             try {
                 const context = currentConversation
@@ -76,8 +89,7 @@ const Main = () => {
                 let response = await result.response;
                 let chatResponse = await response.text();
 
-                // Format the response before adding it to the conversation
-                chatResponse = formatResponse(chatResponse);
+                chatResponse = formatResponse(chatResponse);  // Format bot's response
 
                 setCurrentConversation(prev => [
                     ...prev,
@@ -86,6 +98,8 @@ const Main = () => {
                 setIsYourTurn(true);
             } catch (error) {
                 console.error("Error fetching Gemini response:", error);
+            } finally {
+                setLoading(false); // Hide loader
             }
         }
     };
@@ -99,10 +113,10 @@ const Main = () => {
                 }`}
             >
                 <span
-                    className={`p-4 rounded-2xl mb-2 max-w-[250px] flex flex-wrap break-words overflow-wrap break-word text-white whitespace-normal break-all ${
+                    className={`p-4 rounded-2xl mb-2 max-w-[250px] flex flex-wrap break-words overflow-wrap break-word text-white whitespace-normal ${
                         message.isYou ? "bg-blue-600" : "bg-[#2a2a2a]"
                     } md:max-w-[350px] lg:max-w-[485px]`}
-                    dangerouslySetInnerHTML={{ __html: message.text }} // Use innerHTML to render formatted text
+                    dangerouslySetInnerHTML={{ __html: message.text }}
                 />
             </div>
         );
@@ -115,8 +129,13 @@ const Main = () => {
                     {currentConversation.map((message, index) =>
                         renderMessage(message, index)
                     )}
+                    <div ref={chatEndRef} /> {/* For scrolling */}
+                    {loading && (
+                        <div className="justify-start flex w-full text-gray-400 mt-2">
+                            is Typing...
+                        </div>
+                    )}
                 </div>
-
                 <div className="fixed bottom-0 left-0 right-0 mt-5 w-full p-4 pb-0 z-10">
                     <div className="py-4 my-5">
                         {showPrompts && (
@@ -124,7 +143,6 @@ const Main = () => {
                                 <b className="text-center block my-4 text-lg">
                                     PaddyAI
                                 </b>
-
                                 <div className="my-4 grid place-items-center grid-cols-1 gap-4 md:grid-cols-2 font-poppins md:gap-6">
                                     {randomPrompts.map((prompt, index) => (
                                         <div
@@ -137,7 +155,6 @@ const Main = () => {
                                             <h3 className="font-semibold text-[0.85rem] text-[#ccc]">
                                                 {prompt.title}
                                             </h3>
-
                                             <p className="text-[0.75rem] text-[#bbb]">
                                                 {prompt.description}
                                             </p>
@@ -170,7 +187,6 @@ const Main = () => {
                                 <i className="fa-regular fa-paper-plane"></i>
                             </button>
                         </div>
-
                         <div className="text-center">
                             <span className="text-xs text-gray-400 mt-2">
                                 Paddy can make mistakes.
