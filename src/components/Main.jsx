@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { adjustHeight } from "../utility/inputControl.js";
-import messages from "../utility/messages.json"; // Import the JSON file directly
+import messages from "../utility/messages.json";
 import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
@@ -14,7 +14,7 @@ const Main = () => {
     const [inputValue, setInputValue] = useState("");
     const [showPrompts, setShowPrompts] = useState(true);
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-    const [isYourTurn, setIsYourTurn] = useState(true); // Track if it's your turn to send a message
+    const [isYourTurn, setIsYourTurn] = useState(true);
 
     useEffect(() => {
         const shuffled = messages.sort(() => 0.5 - Math.random());
@@ -22,14 +22,12 @@ const Main = () => {
         setRandomPrompts(selectedPrompts);
     }, []);
 
-    // Detect changes in textarea and adjust height
-
     useEffect(() => {
         const textarea = document.querySelector("textarea");
         if (textarea) {
             adjustHeight(textarea);
         }
-        setIsButtonDisabled(!/\S/.test(inputValue)); // Disable button if empty
+        setIsButtonDisabled(!/\S/.test(inputValue));
     }, [inputValue]);
 
     const handleInput = event => {
@@ -41,10 +39,24 @@ const Main = () => {
         await handleSendMessage(`${prompt.title} ${prompt.description}`);
     };
 
+    const formatResponse = (text) => {
+        // Bold text (surrounded by **)
+        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+        // Code blocks (surrounded by ``` or single backticks)
+        text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+        text = text.replace(/```\n?([\s\S]*?)\n?```/g, '<pre><code>$1</code></pre>');
+
+        // List items (starting with a bullet)
+        text = text.replace(/^\s*\*\s+(.*)$/gm, '<li>$1</li>');
+        text = text.replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>');
+
+        return text;
+    };
+
     const handleSendMessage = async message => {
         const msg = message || inputValue.trim();
         if (msg && isYourTurn) {
-            // Add user message to the conversation
             setCurrentConversation(prev => [
                 ...prev,
                 { text: msg, isYou: true }
@@ -54,25 +66,24 @@ const Main = () => {
             setIsYourTurn(false);
 
             try {
-                // Prepare the context by including the last 8 messages
                 const context = currentConversation
                     .slice(-8)
                     .map(m => m.text)
                     .join("\n");
                 const fullMessage = `Reply Guide Rule: You’re a helpful AI named PaddyAI. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Don't ask irrelevant questions. Context:\n${context}\nUser: ${msg}`;
 
-                // Generate bot response based on the prepared context
                 const result = await model.generateContent([fullMessage]);
-
                 let response = await result.response;
                 let chatResponse = await response.text();
 
-                // Add the bot's response to the conversation
+                // Format the response before adding it to the conversation
+                chatResponse = formatResponse(chatResponse);
+
                 setCurrentConversation(prev => [
                     ...prev,
                     { text: chatResponse, isYou: false }
                 ]);
-                setIsYourTurn(true); // Allow the user to send the next message
+                setIsYourTurn(true);
             } catch (error) {
                 console.error("Error fetching Gemini response:", error);
             }
@@ -91,9 +102,8 @@ const Main = () => {
                     className={`p-4 rounded-2xl mb-2 max-w-[250px] flex flex-wrap break-words text-white whitespace-pre-wrap ${
                         message.isYou ? "bg-blue-600" : "bg-[#2a2a2a]"
                     } md:max-w-[350px] lg:max-w-[460px]`}
-                >
-                    {message.text}
-                </span>
+                    dangerouslySetInnerHTML={{ __html: message.text }} // Use innerHTML to render formatted text
+                />
             </div>
         );
     };
@@ -145,17 +155,17 @@ const Main = () => {
                                 onChange={handleInput}
                                 value={inputValue}
                                 placeholder="Message Paddy..."
-                                disabled={!isYourTurn} // Disable textarea if it's not your turn
+                                disabled={!isYourTurn}
                             ></textarea>
 
                             <button
                                 className={`ml-4 px-3 py-2 rounded-3xl ${
                                     isButtonDisabled || !isYourTurn
-                                        ? "bg-gray-600 text-[#131313] cursor-not-allowed"
+                                        ? "bg-gray-600 text-[#1e1f21] cursor-not-allowed"
                                         : "bg-white text-black"
                                 }`}
                                 onClick={() => handleSendMessage()}
-                                disabled={isButtonDisabled || !isYourTurn} // Disable button if it's not your turn
+                                disabled={isButtonDisabled || !isYourTurn}
                             >
                                 <i className="fa-regular fa-paper-plane"></i>
                             </button>
