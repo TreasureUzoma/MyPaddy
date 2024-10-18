@@ -65,6 +65,8 @@ const Main = () => {
         text = text.replace(/``\n?([\s\S]*?)\n?``/g, "<code>$1</code><br />");
         text = text.replace(/^\s*\*\s+(.*)$/gm, "<br /><li>$1</li>");
         text = text.replace(/(<li>.*<\/li>)/g, "<ul>$1</ul>");
+        // italics ? just leave as span 
+        text = text.replace(/\*(.*?)\*/g, "<span>$1</span>");
         text = text.replace(/\n/g, "<br />"); // Add line breaks
         return text;
     };
