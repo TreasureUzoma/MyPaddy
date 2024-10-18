@@ -138,7 +138,7 @@ const Main = () => {
 
     return (
         <main>
-            <section className="mt-[5rem] min-h-[89vh] md:min-h-screen p-5 pb-[0px] flex flex-col justify-between">
+            <section className="mt-[5rem] min-h-[83vh] md:min-h-screen p-5 pb-[0px] flex flex-col justify-between">
                 <div className="flex flex-grow flex-col items-end text-[0.74rem] mb-[5.21rem]">
                     {currentConversation.map((message, index) =>
                         renderMessage(message, index)
