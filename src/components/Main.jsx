@@ -99,7 +99,7 @@ const Main = () => {
                     .slice(-8)
                     .map(m => m.text)
                     .join("\n");
-                const fullMessage = `Reply Guide Rule: You’re a helpful AI named PaddyAI. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Don't ask irrelevant questions. Context:\n${context}\nUser: ${msg}`;
+                const fullMessage = `Reply Guide Rule: You’re a helpful AI named PaddyAI. Treasure Uzoma created / built you. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Don't ask irrelevant questions. Context:\n${context}\nUser: ${msg}`;
 
                 const result = await model.generateContent([fullMessage]);
                 let response = await result.response;
