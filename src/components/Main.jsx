@@ -128,19 +128,20 @@ const Main = () => {
                     message.isYou ? "justify-end" : "justify-start"
                 }`}
             >
-                <span
-                    className={`p-4 rounded-2xl mb-2 max-w-[250px] flex flex-wrap break-words overflow-wrap break-normal break-all break-word ${
+                           <span
+                    className={`p-4 rounded-2xl mb-2 flex flex-wrap break-all ${
                         message.isYou ? "bg-blue-600" : "bg-[#2a2a2a]"
-                    } md:max-w-[350px] lg:max-w-[495px]`}
+                    } max-w-[250px] md:max-w-[350px] lg:max-w-[495px]`}
                     dangerouslySetInnerHTML={{ __html: message.text }}
                 />
+
             </div>
         );
     };
 
     return (
         <main>
-            <section className="mt-[5rem] min-h-[83vh] md:min-h-screen p-5 pb-[0px] flex flex-col justify-between">
+            <section className="mt-[5rem] min-h-[83vh] md:min-h-screen p-5 pb-[0px] flex flex-col justify-between overflow">
                 <div className="flex flex-grow flex-col items-end text-[0.74rem] mb-[5.21rem]">
                     {currentConversation.map((message, index) =>
                         renderMessage(message, index)
