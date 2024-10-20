@@ -65,7 +65,7 @@ const Main = () => {
         text = text.replace(/``\n?([\s\S]*?)\n?``/g, "<code>$1</code><br />");
         text = text.replace(/^\s*\*\s+(.*)$/gm, "<br /><li>$1</li>");
         text = text.replace(/(<li>.*<\/li>)/g, "<ul>$1</ul>");
-        // italics ? just leave as span 
+        // italics ? just leave as span
         text = text.replace(/\*(.*?)\*/g, "<span>$1</span>");
         text = text.replace(/\n/g, "<br />"); // Add line breaks
         return text;
@@ -128,20 +128,20 @@ const Main = () => {
                     message.isYou ? "justify-end" : "justify-start"
                 }`}
             >
-                           <span
-                    className={`p-4 rounded-2xl mb-2 flex flex-wrap break-all ${
-                        message.isYou ? "bg-blue-600" : "bg-[#2a2a2a]"
-                    } max-w-[250px] md:max-w-[350px] lg:max-w-[495px]`}
+                <span
+                    className={`p-4 rounded-2xl mb-2 flex flex-wrap ${message.isYou ? "bg-blue-600" : "bg-[#2a2a2a]"} max-w-[250px] md:max-w-[350px] lg:max-w-[495px] overflow-hidden break-words`}
+                    style={{ 
+                    wordBreak: "break-word"
+                    }}
                     dangerouslySetInnerHTML={{ __html: message.text }}
                 />
-
             </div>
         );
     };
 
     return (
         <main>
-            <section className="mt-[5rem] min-h-[83vh] md:min-h-screen p-5 pb-[0px] flex flex-col justify-between overflow">
+            <section className="mt-[5rem] min-h-[83vh] md:min-h-screen p-5 pb-[0px] flex flex-col justify-between">
                 <div className="flex flex-grow flex-col items-end text-[0.74rem] mb-[5.21rem]">
                     {currentConversation.map((message, index) =>
                         renderMessage(message, index)
