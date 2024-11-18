@@ -103,15 +103,25 @@ const Main = () => {
 
                 const result = await model.generateContent([fullMessage]);
                 let response = await result.response;
-                let chatResponse = await response.text();
 
-                chatResponse = formatResponse(chatResponse); // Format bot's response
+                if (response) {
+                    let chatResponse = await response.text();
 
-                setCurrentConversation(prev => [
-                    ...prev,
-                    { text: chatResponse, isYou: false }
-                ]);
-                setIsYourTurn(true);
+                    chatResponse = formatResponse(chatResponse); // Format bot's response
+
+                    setCurrentConversation(prev => [
+                        ...prev,
+                        { text: chatResponse, isYou: false }
+                    ]);
+                    setIsYourTurn(true);
+                } else {
+                    chatResponse = formatResponse("Something went wrong 🥺");
+                    setCurrentConversation(prev => [
+                        ...prev,
+                        { text: chatResponse, isYou: false }
+                    ]);
+                    setIsYourTurn(true);
+                }
             } catch (error) {
                 console.error("Error fetching Gemini response:", error);
             } finally {
@@ -129,12 +139,15 @@ const Main = () => {
                 }`}
             >
                 <span
-                    className={`p-4 rounded-2xl mb-2 flex flex-wrap ${message.isYou ? "bg-blue-600" : "bg-[#2a2a2a]"} max-w-[250px] md:max-w-[350px] lg:max-w-[495px] overflow-hidden break-words`}
-                    style={{ 
-                    wordBreak: "break-word"
-                    }}
-                    dangerouslySetInnerHTML={{ __html: message.text }}
-                />
+                    className={`p-4 rounded-2xl mb-2 flex flex-wrap ${
+                        message.isYou ? "bg-blue-600" : "bg-[#2a2a2a]"
+                    } max-w-[250px] md:max-w-[350px] lg:max-w-[495px] break-all`}
+                >
+                    <span
+                        className="break-words break-word"
+                        dangerouslySetInnerHTML={{ __html: message.text }}
+                    />
+                </span>
             </div>
         );
     };
