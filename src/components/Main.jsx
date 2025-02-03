@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { adjustHeight } from "../utility/inputControl.js";
 import messages from "../utility/messages.json";
 import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+import ReactMarkdown from "react-markdown";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -36,58 +37,32 @@ const Main = () => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [currentConversation]);
 
-    const handleInput = event => {
+    const handleInput = useCallback((event) => {
         const value = event.target.value;
         setInputValue(value);
-    };
+    }, []);
 
-    const handlePromptClick = async prompt => {
+    const handlePromptClick = async (prompt) => {
         await handleSendMessage(`${prompt.title} ${prompt.description}`);
     };
 
-    const formatTagsOnly = text => {
-        return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const formatUserMessage = (message) => {
+        return message.trim(); // Assuming you want to trim any excess space
     };
 
-    const formatResponse = text => {
-        // Escape HTML tags first
-        text = formatTagsOnly(text);
-
-        // Replace spaces with &nbsp;
-        text = text.replace(/ /g, "&nbsp;");
-
-        // Replace double line breaks (for paragraphs) with <br />
-        text = text.replace(/\n\s*\n/g, "<br />");
-
-        // Format for markdown-like syntax
-        text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-        text = text.replace(/`([^`]+)`/g, "<code>$1</code><br />");
-        text = text.replace(/``\n?([\s\S]*?)\n?``/g, "<code>$1</code><br />");
-        text = text.replace(/^\s*\*\s+(.*)$/gm, "<br /><li>$1</li>");
-        text = text.replace(/(<li>.*<\/li>)/g, "<ul>$1</ul>");
-        // italics ? just leave as span
-        text = text.replace(/\*(.*?)\*/g, "<span>$1</span>");
-        text = text.replace(/\n/g, "<br />"); // Add line breaks
-        return text;
+    const formatResponse = (response) => {
+        return response.trim(); // Trim the response to avoid unnecessary spaces
     };
 
-    const formatUserMessage = text => {
-        // Replace spaces with &nbsp;
-        text = text.replace(/ /g, "&nbsp;");
-        // Replace new lines with <br />
-        text = text.replace(/\n/g, "<br />");
-        return text;
-    };
-
-    const handleSendMessage = async message => {
+    const handleSendMessage = useCallback(async (message) => {
         const msg = message || inputValue.trim();
         if (msg && isYourTurn) {
             // Format only the user message
             const formattedUserMessage = formatUserMessage(msg);
 
-            setCurrentConversation(prev => [
+            setCurrentConversation((prev) => [
                 ...prev,
-                { text: formattedUserMessage, isYou: true } // User message formatted
+                { text: formattedUserMessage, isYou: true }, // User message formatted
             ]);
             setShowPrompts(false);
             setInputValue("");
@@ -97,7 +72,7 @@ const Main = () => {
             try {
                 const context = currentConversation
                     .slice(-8)
-                    .map(m => m.text)
+                    .map((m) => m.text)
                     .join("\n");
                 const fullMessage = `Reply Guide Rule: You’re a helpful AI named PaddyAI. Treasure Uzoma created / built you. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Don't ask irrelevant questions. Context:\n${context}\nUser: ${msg}`;
 
@@ -109,16 +84,16 @@ const Main = () => {
 
                     chatResponse = formatResponse(chatResponse); // Format bot's response
 
-                    setCurrentConversation(prev => [
+                    setCurrentConversation((prev) => [
                         ...prev,
-                        { text: chatResponse, isYou: false }
+                        { text: chatResponse, isYou: false },
                     ]);
                     setIsYourTurn(true);
                 } else {
-                    chatResponse = formatResponse("Something went wrong 🥺");
-                    setCurrentConversation(prev => [
+                    let chatResponse = formatResponse("Something went wrong 🥺");
+                    setCurrentConversation((prev) => [
                         ...prev,
-                        { text: chatResponse, isYou: false }
+                        { text: chatResponse, isYou: false },
                     ]);
                     setIsYourTurn(true);
                 }
@@ -128,7 +103,7 @@ const Main = () => {
                 setLoading(false); // Hide loader
             }
         }
-    };
+    }, [inputValue, currentConversation, isYourTurn]);
 
     const renderMessage = (message, index) => {
         return (
@@ -141,12 +116,9 @@ const Main = () => {
                 <span
                     className={`p-4 rounded-2xl mb-2 flex flex-wrap ${
                         message.isYou ? "bg-blue-600" : "bg-[#2a2a2a]"
-                    } max-w-[250px] md:max-w-[350px] lg:max-w-[495px] break-all`}
+                    }  break-words whitespace-normal max-w-[250px] md:max-w-[350px] lg:max-w-[495px] overflow-wrap: break-word;`}
                 >
-                    <span
-                        className="break-words break-word"
-                        dangerouslySetInnerHTML={{ __html: message.text }}
-                    />
+                    {message.isYou ? message.text : <ReactMarkdown>{message.text}</ReactMarkdown>}
                 </span>
             </div>
         );
@@ -161,7 +133,7 @@ const Main = () => {
                     )}
                     <div ref={chatEndRef} /> {/* For scrolling */}
                     {loading && (
-                        <div className="justify-start flex w-full text-gray-400 mt-2">
+                        <div className="justify-start flex w-full text-gray-400 mt-2 mb-6">
                             is Typing...
                         </div>
                     )}
@@ -173,7 +145,7 @@ const Main = () => {
                                 <b className="text-center block my-4 text-lg">
                                     PaddyAI
                                 </b>
-                                <div className="my-4 grid place-items-center grid-cols-1 gap-4 md:grid-cols-2 font-poppins md:gap-6">
+                                <div className="my-4 grid place-items-center grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 font-poppins md:gap-6">
                                     {randomPrompts.map((prompt, index) => (
                                         <div
                                             key={index}
