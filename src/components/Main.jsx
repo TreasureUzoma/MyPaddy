@@ -1,128 +1,40 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
-import { adjustHeight } from "../utility/inputControl.js";
-import messages from "../utility/messages.json";
-import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+import React from "react";
+import useConversation from "../hooks/useConversation";
 import ReactMarkdown from "react-markdown";
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-
-const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
 const Main = () => {
-    const [randomPrompts, setRandomPrompts] = useState([]);
-    const [currentConversation, setCurrentConversation] = useState([]);
-    const [inputValue, setInputValue] = useState("");
-    const [showPrompts, setShowPrompts] = useState(true);
-    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-    const [isYourTurn, setIsYourTurn] = useState(true);
-    const [loading, setLoading] = useState(false);
-    const chatEndRef = useRef(null);
+    const {
+        randomPrompts,
+        currentConversation,
+        inputValue,
+        showPrompts,
+        isButtonDisabled,
+        isYourTurn,
+        loading,
+        chatEndRef,
+        handleInput,
+        handleSendMessage,
+        handlePromptClick,
+    } = useConversation();
 
-    useEffect(() => {
-        const shuffled = messages.sort(() => 0.5 - Math.random());
-        const selectedPrompts = shuffled.slice(0, 3);
-        setRandomPrompts(selectedPrompts);
-    }, []);
-
-    useEffect(() => {
-        const textarea = document.querySelector("textarea");
-        if (textarea) {
-            adjustHeight(textarea);
-        }
-        setIsButtonDisabled(!/\S/.test(inputValue));
-    }, [inputValue]);
-
-    useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [currentConversation]);
-
-    const handleInput = useCallback((event) => {
-        const value = event.target.value;
-        setInputValue(value);
-    }, []);
-
-    const handlePromptClick = async (prompt) => {
-        await handleSendMessage(`${prompt.title} ${prompt.description}`);
-    };
-
-    const formatUserMessage = (message) => {
-        return message.trim(); // Assuming you want to trim any excess space
-    };
-
-    const formatResponse = (response) => {
-        return response.trim(); // Trim the response to avoid unnecessary spaces
-    };
-
-    const handleSendMessage = useCallback(async (message) => {
-        const msg = message || inputValue.trim();
-        if (msg && isYourTurn) {
-            // Format only the user message
-            const formattedUserMessage = formatUserMessage(msg);
-
-            setCurrentConversation((prev) => [
-                ...prev,
-                { text: formattedUserMessage, isYou: true }, // User message formatted
-            ]);
-            setShowPrompts(false);
-            setInputValue("");
-            setIsYourTurn(false);
-            setLoading(true); // Show loader
-
-            try {
-                const context = currentConversation
-                    .slice(-8)
-                    .map((m) => m.text)
-                    .join("\n");
-                const fullMessage = `Reply Guide Rule: You’re a helpful AI named PaddyAI. Treasure Uzoma created / built you. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Don't ask irrelevant questions. Context:\n${context}\nUser: ${msg}`;
-
-                const result = await model.generateContent([fullMessage]);
-                let response = await result.response;
-
-                if (response) {
-                    let chatResponse = await response.text();
-
-                    chatResponse = formatResponse(chatResponse); // Format bot's response
-
-                    setCurrentConversation((prev) => [
-                        ...prev,
-                        { text: chatResponse, isYou: false },
-                    ]);
-                    setIsYourTurn(true);
-                } else {
-                    let chatResponse = formatResponse("Something went wrong 🥺");
-                    setCurrentConversation((prev) => [
-                        ...prev,
-                        { text: chatResponse, isYou: false },
-                    ]);
-                    setIsYourTurn(true);
-                }
-            } catch (error) {
-                console.error("Error fetching Gemini response:", error);
-            } finally {
-                setLoading(false); // Hide loader
-            }
-        }
-    }, [inputValue, currentConversation, isYourTurn]);
-
-    const renderMessage = (message, index) => {
-        return (
-            <div
-                key={index}
-                className={`mb-[1.2em] font-poppins flex w-full ${
-                    message.isYou ? "justify-end" : "justify-start"
-                }`}
-            >
+    const renderMessage = (message, index) => (
+        <div
+            key={index}
+            className={`mb-[1.75rem] font-poppins flex w-full ${
+                message.isYou ? "justify-end" : "justify-start"
+            }`}
+        >
+            <span className="max-w-[250px] md:max-w-[350px] lg:max-w-[495px] overflow_break">
                 <span
-                    className={`p-4 rounded-2xl mb-2 flex flex-wrap ${
+                    className={`p-4 px-5 rounded-2xl mb-2 flex flex-wrap ${
                         message.isYou ? "bg-blue-600" : "bg-[#2a2a2a]"
-                    }  break-words whitespace-normal max-w-[250px] md:max-w-[350px] lg:max-w-[495px] overflow-wrap: break-word;`}
+                    } break-words whitespace-normal`}
                 >
                     {message.isYou ? message.text : <ReactMarkdown>{message.text}</ReactMarkdown>}
                 </span>
-            </div>
-        );
-    };
+            </span>
+        </div>
+    );
 
     return (
         <main>
@@ -131,9 +43,9 @@ const Main = () => {
                     {currentConversation.map((message, index) =>
                         renderMessage(message, index)
                     )}
-                    <div ref={chatEndRef} /> {/* For scrolling */}
+                    <div ref={chatEndRef} />
                     {loading && (
-                        <div className="justify-start flex w-full text-gray-400 mt-2 mb-6">
+                        <div className="justify-start flex w-full text-gray-400 mt-2 mb-7">
                             is Typing...
                         </div>
                     )}
@@ -170,7 +82,7 @@ const Main = () => {
                     <div className="py-3 bg-myBlack w-full relative">
                         <div className="flex justify-between items-center rounded-3xl p-2 bg-[#1e1f21] w-full">
                             <textarea
-                                className="w-full font-poppins px-4 py-2 bg-transparent text-sm text-white h-9 max-h-50 resize-none overflow-y-auto"
+                                className="w-full font-poppins px-4 py-1 bg-transparent text-sm text-white min-h-5 max-h-[10rem] resize-none overflow-y-auto"
                                 onChange={handleInput}
                                 value={inputValue}
                                 placeholder="Message Paddy..."
