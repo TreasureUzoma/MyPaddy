@@ -4,7 +4,7 @@ import messages from "../utility/messages.json";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 const useConversation = () => {
     const [randomPrompts, setRandomPrompts] = useState([]);
@@ -67,10 +67,10 @@ const useConversation = () => {
 
             try {
                 const context = currentConversation
-                    .slice(-8)
+                    .slice(-12)
                     .map((m) => m.text)
                     .join("\n");
-                const fullMessage = `Reply Guide Rule: You’re a helpful AI named PaddyAI. Treasure Uzoma created / built you. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Don't ask irrelevant questions. Context:\n${context}\nUser: ${msg}`;
+                const fullMessage = `Reply Guide Rule: You’re a helpful AI named PaddyAI. Treasure Uzoma created / built you. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Type casually like a human, in lowercase if possible (not everytime). Reply PG contents. Don't ask irrelevant questions. Today is ${new Date()}. Use app router do for nextjs Incase if asked. My portfolio is https://treasureuzoma.netlify.app. Context:\n${context}\nUser: ${msg}`;
 
                 const result = await model.generateContent([fullMessage]);
                 let response = await result.response;
