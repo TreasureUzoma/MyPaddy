@@ -14,7 +14,7 @@ const Main = () => {
         chatEndRef,
         handleInput,
         handleSendMessage,
-        handlePromptClick,
+        handlePromptClick
     } = useConversation();
 
     const renderMessage = (message, index) => (
@@ -30,7 +30,11 @@ const Main = () => {
                         message.isYou ? "bg-blue-600" : "bg-[#2a2a2a]"
                     } break-words whitespace-normal`}
                 >
-                    {message.isYou ? message.text : <ReactMarkdown>{message.text}</ReactMarkdown>}
+                    {message.isYou ? (
+                        message.text
+                    ) : (
+                        <ReactMarkdown>{message.text}</ReactMarkdown>
+                    )}
                 </span>
             </span>
         </div>
@@ -38,7 +42,7 @@ const Main = () => {
 
     return (
         <main>
-            <section className="mt-[5rem] min-h-[83vh] md:min-h-screen p-5 pb-[0px] flex flex-col justify-between">
+            <section className="mt-[1rem] min-h-[83vh] md:min-h-screen p-5 pb-[0px] flex flex-col justify-between">
                 <div className="flex flex-grow flex-col items-end text-[0.74rem] mb-[5.21rem]">
                     {currentConversation.map((message, index) =>
                         renderMessage(message, index)
@@ -46,7 +50,7 @@ const Main = () => {
                     <div ref={chatEndRef} />
                     {loading && (
                         <div className="justify-start flex w-full text-gray-400 mt-2 mb-7">
-                            is Typing...
+                            Thinking...
                         </div>
                     )}
                 </div>
@@ -105,7 +109,8 @@ const Main = () => {
                             <span className="text-xs text-gray-400 mt-2">
                                 Paddy can make mistakes.
                                 <a
-                                    href="#"
+                                    href="https://ai.google.com"
+                                    target="_blank"
                                     className="text-blue-500 hover:text-blue-700"
                                 >
                                     &nbsp;Learn more.

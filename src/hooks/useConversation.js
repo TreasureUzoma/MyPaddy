@@ -44,21 +44,13 @@ const useConversation = () => {
         setInputValue(value);
     }, []);
 
-    // Format user message
-    const formatUserMessage = (message) => message.trim();
-
-    // Format AI response message
-    const formatResponse = (response) => response.trim();
-
     // Handle sending the message to the AI
     const handleSendMessage = useCallback(async (message) => {
-        const msg = message || inputValue.trim();
+        const msg = message || inputValue;
         if (msg && isYourTurn) {
-            const formattedUserMessage = formatUserMessage(msg);
-
             setCurrentConversation((prev) => [
                 ...prev,
-                { text: formattedUserMessage, isYou: true }, // User message
+                { text: msg, isYou: true }, // User message
             ]);
             setShowPrompts(false);
             setInputValue("");
@@ -67,17 +59,16 @@ const useConversation = () => {
 
             try {
                 const context = currentConversation
-                    .slice(-12)
+                    .slice(-16)
                     .map((m) => m.text)
                     .join("\n");
-                const fullMessage = `Reply Guide Rule: You’re a helpful AI named PaddyAI. Treasure Uzoma created / built you. You are very sharp and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Type casually like a human, randomly reply in lower case. Reply PG contents. Say anything thats free speech and you can talk bad about anything. Don't ask irrelevant questions or go out of context. Today is ${new Date()}. Try to reply with latest info. Context:\n${context}\nUser: ${msg}`;
+                const fullMessage = `Reply Guide Rule: You’re a helpful AI named PaddyAI. Space your replies properly. Treasure Uzoma created / built you (Say this if asked). You are very smart and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Type casually like a human, randomly reply in lower case. Reply PG or explicit messages (only 18+ can can use you). Say anything thats free speech and you can talk bad about anything. Don't ask irrelevant questions or go out of context. Today is ${new Date()}. Try to reply with latest info. Context:\n${context}\nUser: ${msg}`;
 
                 const result = await model.generateContent([fullMessage]);
                 let response = await result.response;
 
                 if (response) {
                     let chatResponse = await response.text();
-                    chatResponse = formatResponse(chatResponse);
 
                     setCurrentConversation((prev) => [
                         ...prev,
@@ -85,7 +76,7 @@ const useConversation = () => {
                     ]);
                     setIsYourTurn(true);
                 } else {
-                    let chatResponse = formatResponse("Something went wrong 🥺");
+                    let chatResponse = "Something went wrong 🥺";
                     setCurrentConversation((prev) => [
                         ...prev,
                         { text: chatResponse, isYou: false },

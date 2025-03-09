@@ -5,7 +5,7 @@ module.exports = {
         extend: {
             fontFamily: {
                 poppins: ["Poppins", "sans-serif"],
-                Lato: ["Lato", "Arial"]
+                geist: ["Geist", "Arial"]
             },
             backgroundColor: {
                 myBlack: "#131313"
