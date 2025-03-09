@@ -20,23 +20,28 @@ const Main = () => {
     const renderMessage = (message, index) => (
         <div
             key={index}
-            className={`mb-[1.75rem] font-poppins flex w-full ${
+            className={`mb-[1.75rem] flex w-full ${
                 message.isYou ? "justify-end" : "justify-start"
             }`}
         >
-            <span className="max-w-[250px] md:max-w-[350px] lg:max-w-[495px] overflow_break">
+            <div className="max-w-[80%]">
                 <span
-                    className={`p-4 px-5 rounded-2xl mb-2 flex flex-wrap ${
-                        message.isYou ? "bg-blue-600" : "bg-[#2a2a2a]"
-                    } break-words whitespace-normal`}
+                    className={`p-4 px-5 rounded-2xl mb-2 inline-block ${
+                        message.isYou
+                            ? "bg-blue-600 text-white"
+                            : "bg-[#2a2a2a] text-white"
+                    } break-words`}
+                    style={{
+                        wordBreak: "break-word"
+                    }} /* Adding it inline for extra insurance*/
                 >
                     {message.isYou ? (
                         message.text
                     ) : (
-                        <ReactMarkdown>{message.text}</ReactMarkdown>
+                        <ReactMarkdown className="max-w-[300px]">{message.text.replace(/\n/gi, "\n")}</ReactMarkdown>
                     )}
                 </span>
-            </span>
+            </div>
         </div>
     );
 
@@ -61,7 +66,7 @@ const Main = () => {
                                 <b className="text-center block my-4 text-lg">
                                     PaddyAI
                                 </b>
-                                <div className="my-4 grid place-items-center grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 font-poppins md:gap-6">
+                                <div className="my-4 grid place-items-center grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3  md:gap-6">
                                     {randomPrompts.map((prompt, index) => (
                                         <div
                                             key={index}
@@ -73,7 +78,7 @@ const Main = () => {
                                             <h3 className="font-semibold text-[0.85rem] text-[#ccc]">
                                                 {prompt.title}
                                             </h3>
-                                            <p className="text-[0.75rem] text-[#bbb]">
+                                            <p className="text-[0.77rem] text-[#bbb]">
                                                 {prompt.description}
                                             </p>
                                         </div>
@@ -84,9 +89,9 @@ const Main = () => {
                     </div>
 
                     <div className="py-3 bg-myBlack w-full relative">
-                        <div className="flex justify-between items-center rounded-3xl p-2 bg-[#1e1f21] w-full">
+                        <div className="flex justify-between items-center rounded-3xl py-1 px-2 bg-[#1e1f21] w-full">
                             <textarea
-                                className="w-full font-poppins px-4 py-1 bg-transparent text-sm text-white min-h-5 max-h-[10rem] resize-none overflow-y-auto"
+                                className="w-full px-4 py-1 bg-transparent text-[0.85rem] text-white max-h-[10rem] resize-none overflow-y-auto m-auto"
                                 onChange={handleInput}
                                 value={inputValue}
                                 placeholder="Message Paddy..."
