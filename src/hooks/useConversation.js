@@ -39,60 +39,84 @@ const useConversation = () => {
     }, [currentConversation]);
 
     // Handle user input in the textarea
-    const handleInput = useCallback((event) => {
+    const handleInput = useCallback(event => {
         const value = event.target.value;
         setInputValue(value);
     }, []);
 
     // Handle sending the message to the AI
-    const handleSendMessage = useCallback(async (message) => {
-        const msg = message || inputValue;
-        if (msg && isYourTurn) {
-            setCurrentConversation((prev) => [
-                ...prev,
-                { text: msg, isYou: true }, // User message
-            ]);
-            setShowPrompts(false);
-            setInputValue("");
-            setIsYourTurn(false);
-            setLoading(true);
+    const handleSendMessage = useCallback(
+        async message => {
+            const msg = message || inputValue;
+            if (msg && isYourTurn) {
+                setCurrentConversation(prev => [
+                    ...prev,
+                    { text: msg, isYou: true } // User message
+                ]);
+                setShowPrompts(false);
+                setInputValue("");
+                setIsYourTurn(false);
+                setLoading(true);
 
-            try {
-                const context = currentConversation
-                    .slice(-16)
-                    .map((m) => m.text)
-                    .join("\n");
-                const fullMessage = `Reply Guide Rule: You’re a helpful AI named PaddyAI. Space your replies properly. Treasure Uzoma created / built you (Say this if asked). You are very smart and you understand things easily. Only add emojis to your messages when necessary. Sound Human. Type casually like a human, randomly reply in lower case. Reply PG or explicit messages (only 18+ can can use you). Say anything thats free speech and you can talk bad about anything. Don't ask irrelevant questions or go out of context. Today is ${new Date()}. Try to reply with latest info. Context:\n${context}\nUser: ${msg}`;
+                try {
+                    const context = currentConversation
+                        .slice(-16)
+                        .map(m => m.text)
+                        .join("\n");
+                    const fullMessage = `Reply Guide Rule: You’re a helpful AI named PaddyAI.
+                Space your replies properly.
+                Treasure Uzoma created / built you (Say this if asked).
+                You are very smart and you understand things easily.
+                Only add emojis to your messages when necessary.
+                Sound Human.
+                Type casually like a human, randomly reply in lower case. Reply PG or explicit messages (only 18+ can can use you). Say anything thats free speech and you can talk bad about anything.
+                Don't ask irrelevant questions or go out of context. Today is ${new Date()}. Try to reply with latest info. 
+                If your're writing cide always use latest version. 
+                Examples of good snippets:
+                \`\`\`python
+                # Calculate factorial iteratively
+                def factorial(n):
+                result = 1
+                for i in range(1, n + 1):
+                result *= i
+                return result
+                print(f"Factorial of 5 is: {factorial(5)}")
+                \`\`\`
 
-                const result = await model.generateContent([fullMessage]);
-                let response = await result.response;
+                
+                Context:\n${context}\nUser: ${msg}`;
 
-                if (response) {
-                    let chatResponse = await response.text();
+                    const result = await model.generateContent([fullMessage]);
+                    let response = await result.response;
 
-                    setCurrentConversation((prev) => [
-                        ...prev,
-                        { text: chatResponse, isYou: false },
-                    ]);
-                    setIsYourTurn(true);
-                } else {
-                    let chatResponse = "Something went wrong 🥺";
-                    setCurrentConversation((prev) => [
-                        ...prev,
-                        { text: chatResponse, isYou: false },
-                    ]);
-                    setIsYourTurn(true);
+                    if (response) {
+                        let chatResponse = await response.text();
+
+                        setCurrentConversation(prev => [
+                            ...prev,
+                            { text: chatResponse, isYou: false }
+                        ]);
+                        setIsYourTurn(true);
+                    } else {
+                        let chatResponse = "Something went wrong 🥺";
+                        setCurrentConversation(prev => [
+                            ...prev,
+                            { text: chatResponse, isYou: false }
+                        ]);
+                        setIsYourTurn(true);
+                    }
+                } catch (error) {
+                    console.error("Error fetching Gemini response:", error);
+                } finally {
+                    setLoading(false);
                 }
-            } catch (error) {
-                console.error("Error fetching Gemini response:", error);
-            } finally {
-                setLoading(false);
             }
-        }
-    }, [inputValue, currentConversation, isYourTurn]);
+        },
+        [inputValue, currentConversation, isYourTurn]
+    );
 
     // Handle prompt click
-    const handlePromptClick = async (prompt) => {
+    const handlePromptClick = async prompt => {
         await handleSendMessage(`${prompt.title} ${prompt.description}`);
     };
 
@@ -107,7 +131,7 @@ const useConversation = () => {
         chatEndRef,
         handleInput,
         handleSendMessage,
-        handlePromptClick,
+        handlePromptClick
     };
 };
 
