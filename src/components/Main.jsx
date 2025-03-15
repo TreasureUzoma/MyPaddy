@@ -24,7 +24,7 @@ const Main = () => {
     return (
         <main>
             <section className="mt-[1.25rem] min-h-[83vh] md:min-h-screen px-5 flex flex-col justify-between">
-                <div className="flex flex-grow flex-col items-end text-[0.79rem] mb-[8.21rem]">
+                <div className="flex flex-grow flex-col items-end text-[0.79rem] mb-[8.2rem] mx-auto md:w-full md:max-w-[79%] md:mb-[6.5rem]">
                     {currentConversation.map((message, index) => (
                         <Message key={index} message={message} />
                     ))}
@@ -36,7 +36,7 @@ const Main = () => {
                     )}
                 </div>
                 <div className="fixed bottom-0 left-0 right-0 w-full p-4 pb-0 z-10">
-                    <div className="py-4 my-5">
+                    <div className="py-4 my-5 mx-auto md:max-w-[67%]">
                         {showPrompts && (
                             <PromptSuggestions
                                 randomPrompts={randomPrompts}

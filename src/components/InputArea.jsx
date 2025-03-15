@@ -10,7 +10,7 @@ const InputArea = ({
 }) => {
     return (
         <div className="py-3 pt-1 w-full relative bg-myBlack">
-            <div className="flex flex-col rounded-3xl py-3 px-2 bg-neutral-800 border border-neutral-700 w-full">
+            <div className="flex flex-col rounded-3xl py-3 px-2 bg-neutral-800 border border-neutral-700 w-full mx-auto md:max-w-[67%]">
                 <div className="flex items-end">
                     <textarea
                         className="w-full px-3 bg-transparent text-[0.85rem] text-white max-h-[10rem] resize-none overflow-y-auto m-auto placeholder:text-neutral-500"
