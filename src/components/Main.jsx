@@ -24,7 +24,7 @@ const Main = () => {
     return (
         <main>
             <section className="mt-[1.25rem] min-h-[83vh] md:min-h-screen px-5 flex flex-col justify-between">
-                <div className="flex flex-grow flex-col items-end text-[0.79rem] mb-[8.2rem] mx-auto md:w-full md:max-w-[79%] md:mb-[6.5rem]">
+                <div className="flex flex-grow flex-col items-end text-[0.79rem] mb-[8.2rem] md:mx-auto md:w-full md:max-w-[79%] md:mb-[6.5rem]">
                     {currentConversation.map((message, index) => (
                         <Message key={index} message={message} />
                     ))}
