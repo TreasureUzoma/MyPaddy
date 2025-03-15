@@ -60,6 +60,7 @@ const useConversation = () => {
         async message => {
             const msg = message || inputValue;
             if (msg && isYourTurn) {
+                // Add the user's message to the conversation first
                 setCurrentConversation(prev => [
                     ...prev,
                     { text: msg, isYou: true } // User message
@@ -74,45 +75,47 @@ const useConversation = () => {
                         .slice(-16)
                         .map(m => m.text)
                         .join("\n");
-                    const fullMessage = `
-                ${geminiPrompt}
-                
-                Context:\n${context}\nUser: ${msg}`;
+                    const fullMessage = `${geminiPrompt}
+                    
+                    Context:\n${context}\nUser: ${msg}`;
 
-                    const result = await model.generateContent([fullMessage]);
-                    let response = await result.response;
+                    const result = await model.generateContentStream([
+                        fullMessage
+                    ]);
+                    setLoading(false);
+                    let chatResponse = ""; // to accumulate the full response
+                    const lastMessageIndex = currentConversation.length; // track last message
 
-                    if (response) {
-                        let chatResponse = await response.text();
+                    for await (const chunk of result.stream) {
+                        const chunkText = await chunk.text();
+                        chatResponse += chunkText; // Append the chunk of text
 
-                        setCurrentConversation(prev => [
-                            ...prev,
-                            { text: chatResponse, isYou: false }
-                        ]);
-                        setIsYourTurn(true);
-                    } else {
-                        let chatResponse = "Something went wrong 🥺";
-                        setCurrentConversation(prev => [
-                            ...prev,
-                            { text: chatResponse, isYou: false }
-                        ]);
-                        setIsYourTurn(true);
+                        // Update the conversation state with the latest chunk
+                        setCurrentConversation(prev => {
+                            const updatedConversation = [...prev];
+                            updatedConversation[lastMessageIndex + 1] = {
+                                text: chatResponse,
+                                isYou: false
+                            };
+                            return updatedConversation;
+                        });
                     }
+
+                    setIsYourTurn(true);
                 } catch (error) {
-                    let chatResponse = "Something went wrong 🥺";
+                    const chatResponse = "Something went wrong 🥺";
                     setCurrentConversation(prev => [
                         ...prev,
                         { text: chatResponse, isYou: false }
                     ]);
                     setIsYourTurn(true);
-
                     console.error("Error fetching response:", error);
                 } finally {
                     setLoading(false);
                 }
             }
         },
-        [inputValue, currentConversation, isYourTurn, model] // Ensure the model is a dependency
+        [inputValue, currentConversation, isYourTurn, model]
     );
 
     // Handle prompt click
