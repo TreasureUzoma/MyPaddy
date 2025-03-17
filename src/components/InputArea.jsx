@@ -23,11 +23,11 @@ const InputArea = ({
                     <div className="flex items-center justify-start gap-2">
                         {/* Reasoning Toggle Button */}
                         <button
-                            className={`px-3 py-1 rounded-full flex items-center gap-2 font-medium text-[0.87rem] ${isReasoningEnabled ? "bg-blue-500 bg-opacity-10 text-blue-500 border-0" : "text-neutral-500 bg-transparent border border-neutral-500" }`}
+                            className={`px-3 py-1 rounded-full flex items-center gap-2 font-medium text-[0.83rem] ${isReasoningEnabled ? "bg-blue-500 bg-opacity-10 text-blue-500 border-0" : "text-neutral-500 bg-transparent border border-neutral-500" }`}
                             onClick={toggleReasoning}
                         >
                             <i className={`fa-regular fa-lightbulb`}></i>
-                            <span className="text-[0.85rem]">Reason</span>
+                            <span className="text-[0.8rem]">Reason</span>
                         </button>
                     </div>
                     {/* Send Button */}
