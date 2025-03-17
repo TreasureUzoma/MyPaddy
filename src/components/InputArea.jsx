@@ -32,7 +32,7 @@ const InputArea = ({
                     </div>
                     {/* Send Button */}
                     <button
-                        className={`px-[0.8rem] py-2 rounded-full ${
+                        className={`px-[0.64rem] py-[0.2rem] rounded-full ${
                             isButtonDisabled || !isYourTurn
                                 ? "bg-neutral-600 text-[#1e1f21] cursor-not-allowed"
                                 : "bg-white text-black"
@@ -40,7 +40,7 @@ const InputArea = ({
                         onClick={() => handleSendMessage()}
                         disabled={isButtonDisabled || !isYourTurn}
                     >
-                        <i className="fa-regular fa-paper-plane text-[0.9rem]"></i>
+                        <i className="fa fa-arrow-up text-[0.93rem]"></i>
                     </button>
                 </div>
             </div>
