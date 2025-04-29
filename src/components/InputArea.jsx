@@ -16,7 +16,7 @@ const InputArea = ({
                         className="w-full px-3 bg-transparent text-[0.85rem] text-white max-h-[10rem] resize-none overflow-y-auto m-auto placeholder:text-neutral-500"
                         onChange={handleInput}
                         value={inputValue}
-                        placeholder="Message Paddy..."
+                        placeholder="Ask MyPaddy anything..."
                     />
                 </div>
                 <div className="flex px-2 items-center justify-between">

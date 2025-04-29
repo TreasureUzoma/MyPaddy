@@ -3,7 +3,7 @@ import React from "react";
 const PromptSuggestions = ({ randomPrompts, handlePromptClick }) => {
   return (
     <>
-      <b className="text-center block my-4 text-lg">PaddyAI</b>
+      <b className="text-center block my-4 text-lg">Hi, How can I help?</b>
       <div className="my-4 grid place-items-center grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 md:gap-6">
         {randomPrompts.map((prompt, index) => (
           <div
